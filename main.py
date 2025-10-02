@@ -31,6 +31,20 @@ def read_root():
 # Therapist endpoints
 @app.post("/therapists/", response_model=schemas.Therapist)
 def create_therapist(therapist: schemas.TherapistCreate, db: Session = Depends(get_db)):
+    # Check if license number already exists
+    existing_therapist = db.query(models.Therapist).filter(
+        models.Therapist.license_number == therapist.license_number
+    ).first()
+    if existing_therapist:
+        raise HTTPException(status_code=400, detail="License number already exists")
+    
+    # Check if email already exists
+    existing_email = db.query(models.Therapist).filter(
+        models.Therapist.email == therapist.email
+    ).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
     db_therapist = models.Therapist(**therapist.dict())
     db.add(db_therapist)
     db.commit()
@@ -42,7 +56,7 @@ def get_therapists(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
     therapists = db.query(models.Therapist).offset(skip).limit(limit).all()
     return therapists
 
-@app.get("/therapists/{therapist_id}", response_model=schemas.Therapist)
+@app.get("/therapists/{therapist_id}", response_model=schemas.TherapistWithPatients)
 def get_therapist(therapist_id: int, db: Session = Depends(get_db)):
     therapist = db.query(models.Therapist).filter(models.Therapist.id == therapist_id).first()
     if therapist is None:
@@ -59,6 +73,21 @@ def get_therapist_patients(therapist_id: int, db: Session = Depends(get_db)):
 # Patient endpoints
 @app.post("/patients/", response_model=schemas.Patient)
 def create_patient(patient: schemas.PatientCreate, db: Session = Depends(get_db)):
+    # Check if email already exists
+    existing_patient = db.query(models.Patient).filter(
+        models.Patient.email == patient.email
+    ).first()
+    if existing_patient:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # If therapist_id is provided, verify it exists
+    if patient.therapist_id:
+        therapist = db.query(models.Therapist).filter(
+            models.Therapist.id == patient.therapist_id
+        ).first()
+        if not therapist:
+            raise HTTPException(status_code=404, detail="Therapist not found")
+    
     db_patient = models.Patient(**patient.dict())
     db.add(db_patient)
     db.commit()
@@ -70,7 +99,7 @@ def get_patients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
     patients = db.query(models.Patient).offset(skip).limit(limit).all()
     return patients
 
-@app.get("/patients/{patient_id}", response_model=schemas.Patient)
+@app.get("/patients/{patient_id}", response_model=schemas.PatientWithTherapist)
 def get_patient(patient_id: int, db: Session = Depends(get_db)):
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if patient is None:

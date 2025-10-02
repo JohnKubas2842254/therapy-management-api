@@ -2,27 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
 
-# Therapist schemas
-class TherapistBase(BaseModel):
-    first_name: str
-    last_name: str
-    email: EmailStr
-    specialty: str
-    license_number: str
-    phone: str
-
-class TherapistCreate(TherapistBase):
-    pass
-
-class Therapist(TherapistBase):
-    id: int
-    created_at: datetime
-    patients: List['Patient'] = []
-
-    class Config:
-        from_attributes = True
-
-# Patient schemas
+# Base schemas
 class PatientBase(BaseModel):
     first_name: str
     last_name: str
@@ -31,17 +11,40 @@ class PatientBase(BaseModel):
     date_of_birth: str
     emergency_contact: str
 
+class TherapistBase(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    specialty: str
+    license_number: str
+    phone: str
+
+# Create schemas (for input)
 class PatientCreate(PatientBase):
     therapist_id: Optional[int] = None
 
+class TherapistCreate(TherapistBase):
+    pass
+
+# Response schemas (for output) - without circular references
 class Patient(PatientBase):
     id: int
     therapist_id: Optional[int] = None
     created_at: datetime
-    therapist: Optional[Therapist] = None
 
     class Config:
         from_attributes = True
 
-# Forward reference resolution
-Therapist.model_rebuild()
+class Therapist(TherapistBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Extended schemas with relationships (use carefully)
+class TherapistWithPatients(Therapist):
+    patients: List[Patient] = []
+
+class PatientWithTherapist(Patient):
+    therapist: Optional[Therapist] = None
