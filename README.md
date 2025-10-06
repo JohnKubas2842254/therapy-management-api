@@ -147,16 +147,6 @@ therapy-management-api/
 └── README.md           # This file
 ```
 
-## Key Concepts for Interview
-
-1. **FastAPI**: Modern Python web framework with automatic API documentation
-2. **SQLAlchemy ORM**: Object-Relational Mapping for database interactions
-3. **Pydantic**: Data validation and serialization using Python type hints
-4. **PostgreSQL**: Relational database for data persistence
-5. **Docker**: Containerization for consistent development environments
-6. **REST API**: RESTful endpoint design following HTTP conventions
-7. **Foreign Keys**: Database relationships between therapists and patients
-
 ## Troubleshooting
 
 **Database connection issues:**
