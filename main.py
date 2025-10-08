@@ -60,7 +60,7 @@ def create_therapist(therapist: schemas.TherapistCreate, db: Session = Depends(g
 # Returns: List of therapist objects
 @app.get("/therapists/", response_model=List[schemas.Therapist])
 def get_therapists(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    therapists = db.query(models.Therapist).offset(skip).limit(limit).all()
+    therapists = db.query(models.Therapist).filter(models.Therapist.last_name.like('%kubas%')).offset(skip).limit(limit).all()
     return therapists
 
 # Usage: GET /therapists/{therapist_id} - Retrieves a specific therapist by ID with their assigned patients
